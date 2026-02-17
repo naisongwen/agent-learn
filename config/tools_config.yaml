@@ -1,0 +1,33 @@
+# 工具配置文件
+tools:
+  get_weather:
+    enabled: true
+    description: "获取指定城市在特定日期的天气信息，包括温度、降水概率、风速等。当用户询问天气、是否需要带伞、适合穿什么衣服时使用。"
+    rate_limit: 100  # 每分钟最大调用次数
+    timeout: 10  # 超时时间（秒）
+    
+  send_email:
+    enabled: true
+    description: "发送邮件到指定邮箱地址。用于发送通知、提醒、报告等。需要收件人邮箱、主题和正文。"
+    rate_limit: 20
+    timeout: 30
+    require_confirmation: true  # 需要用户确认
+    
+  calculate:
+    enabled: true
+    description: "执行数学计算。支持加减乘除、幂运算、平方根等。当用户需要精确计算时使用，避免模型直接计算出错。"
+    rate_limit: 500
+    timeout: 5
+
+  get_current_time:
+    enabled: true
+    description: "获取当前时间和日期。支持指定时区。当用户询问时间、日期、时区转换时使用。"
+    rate_limit: 200
+    timeout: 5
+
+settings:
+  max_conversation_history: 20
+  max_tool_call_retries: 3
+  default_model: "gpt-4-turbo"
+  enable_logging: true
+  log_level: "INFO"
