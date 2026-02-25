@@ -12,6 +12,7 @@ from tools.weather import WeatherTool
 from tools.email import EmailTool  
 from tools.calculator import CalculatorTool
 from tools.get_time import TimeTool
+from tools.context_manager import ContextManagerTool
 
 # 工具注册表
 TOOL_REGISTRY = {
@@ -19,6 +20,7 @@ TOOL_REGISTRY = {
     "send_email": EmailTool(),
     "calculate": CalculatorTool(),
     "get_current_time": TimeTool(),
+    "manage_context": ContextManagerTool(),  # 新增上下文管理工具
 }
 
 def get_all_tools():
@@ -32,3 +34,19 @@ def get_tool_by_name(name: str):
 def get_enabled_tool_names():
     """获取所有启用的工具名称"""
     return [name for name, tool in TOOL_REGISTRY.items() if tool.enabled]
+
+# 便捷函数
+def demo_all_tools():
+    """演示所有工具功能"""
+    print("🔧 所有工具演示")
+    print("=" * 40)
+    
+    enabled_tools = get_enabled_tool_names()
+    print(f"启用的工具 ({len(enabled_tools)}个):")
+    for tool_name in enabled_tools:
+        print(f"  - {tool_name}")
+    
+    print(f"\n工具定义数量: {len(get_all_tools())}")
+
+if __name__ == "__main__":
+    demo_all_tools()

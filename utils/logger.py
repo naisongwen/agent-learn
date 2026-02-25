@@ -9,9 +9,13 @@ from datetime import datetime
 def setup_logging(log_level: str = "INFO", log_file: str = None):
     """配置日志"""
     
+    # 获取项目根目录
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    logs_dir = os.path.join(project_root, "logs")
+    
     # 创建logs目录
     if log_file:
-        os.makedirs("logs", exist_ok=True)
+        os.makedirs(logs_dir, exist_ok=True)
     
     # 日志格式
     formatter = logging.Formatter(
@@ -31,7 +35,8 @@ def setup_logging(log_level: str = "INFO", log_file: str = None):
     # 文件处理器
     if log_file:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_handler = logging.FileHandler(f"logs/{log_file}_{timestamp}.log")
+        log_path = os.path.join(logs_dir, f"{log_file}_{timestamp}.log")
+        file_handler = logging.FileHandler(log_path)
         file_handler.setFormatter(formatter)
         logger.addHandler(file_handler)
     
