@@ -27,8 +27,20 @@ logger = logging.getLogger(__name__)
 class LLMClient:
     """LLM客户端"""
     
-    def __init__(self, model: str = "gpt-4-turbo"):
-        self.model = model
+    def __init__(self, model: str = None):
+        self.model = model or os.getenv("DEFAULT_MODEL", "gpt-4-turbo")
+        self.max_conversation_history = int(os.getenv("MAX_CONVERSATION_HISTORY", 20))
+        self.max_tool_call_retries = int(os.getenv("MAX_TOOL_CALL_RETRIES", 3))
+        self.enable_logging = os.getenv("ENABLE_LOGGING", "true").lower() == "true"
+        self.log_level = os.getenv("LOG_LEVEL", "INFO")
+        
+        # 配置日志
+        if self.enable_logging:
+            logging.basicConfig(
+                level=getattr(logging, self.log_level),
+                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+        
         self.client = OpenAI(
             api_key=os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
@@ -56,7 +68,6 @@ class LLMClient:
         current_messages = messages.copy()
         
         # 直接使用tools参数，让LLM自主判断是否需要调用工具
-        # 现代LLM已具备足够的智能来识别何时使用工具
         
         for turn in range(max_turns):
             logger.info(f"对话轮次：{turn + 1}")
@@ -83,7 +94,7 @@ class LLMClient:
                     return {
                         "success": True,
                         "content": assistant_message.content,
-                        "tool_calls_count": turn,
+                        "tool_calls_count": turn + 1,
                         "messages": current_messages
                     }
                 
@@ -108,14 +119,29 @@ class LLMClient:
                     "messages": current_messages
                 }
         
-        # 达到最大轮数
-        logger.warning("达到最大工具调用轮数")
-        return {
-            "success": True,
-            "content": "抱歉，处理过程过于复杂，未能完成所有操作。",
-            "tool_calls_count": max_turns,
-            "messages": current_messages
-        }
+        # 达到最大轮数，调用 LLM 生成最终答案
+        logger.warning("达到最大工具调用轮数，生成最终答案")
+        try:
+            self.rate_limiter.acquire()
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=current_messages,
+                temperature=0.7,
+            )
+            final_answer = response.choices[0].message.content
+            return {
+                "success": True,
+                "content": final_answer,
+                "tool_calls_count": max_turns,
+                "messages": current_messages
+            }
+        except Exception as e:
+            return {
+                "success": True,
+                "content": "抱歉，处理过程过于复杂，未能完成所有操作。",
+                "tool_calls_count": max_turns,
+                "messages": current_messages
+            }
     
     def _execute_tool_call(self, tool_call) -> Dict[str, Any]:
         """执行单个工具调用"""

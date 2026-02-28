@@ -12,8 +12,10 @@ def validate_tool_call(function_name: str, arguments: Dict[str, Any]) -> Dict[st
     Returns:
         {"valid": True/False, "error": "错误信息"}
     """
-    # 白名单检查
-    allowed_functions = ["get_weather", "send_email", "calculate", "get_current_time"]
+    # 获取已注册的工具列表
+    from tools import get_enabled_tool_names
+    allowed_functions = get_enabled_tool_names()
+    
     if function_name not in allowed_functions:
         return {
             "valid": False,
@@ -29,6 +31,9 @@ def validate_tool_call(function_name: str, arguments: Dict[str, Any]) -> Dict[st
     
     if function_name == "get_weather":
         return _validate_weather_params(arguments)
+    
+    if function_name == "execute_sql":
+        return _validate_sql_params(arguments)
     
     return {"valid": True, "error": None}
 
@@ -83,5 +88,32 @@ def _validate_weather_params(args: Dict[str, Any]) -> Dict[str, Any]:
     
     if not location or len(location) > 50:
         return {"valid": False, "error": "无效的城市名称"}
+    
+    return {"valid": True, "error": None}
+
+
+def _validate_sql_params(args: Dict[str, Any]) -> Dict[str, Any]:
+    """验证 SQL 查询参数"""
+    import re
+    
+    sql = args.get("sql", "")
+    
+    if not sql:
+        return {"valid": False, "error": "SQL 不能为空"}
+    
+    # 长度限制
+    if len(sql) > 5000:
+        return {"valid": False, "error": "SQL 语句过长"}
+    
+    # 检查是否包含禁止的关键词
+    forbidden = ["INSERT", "UPDATE", "DELETE", "DROP", "CREATE", "ALTER", "TRUNCATE", "GRANT", "REVOKE", "EXEC"]
+    sql_upper = sql.upper()
+    for word in forbidden:
+        if re.search(r'\b' + word + r'\b', sql_upper):
+            return {"valid": False, "error": f"SQL 包含禁止的关键词: {word}"}
+    
+    # 确保是 SELECT
+    if not sql_upper.strip().startswith("SELECT"):
+        return {"valid": False, "error": "只支持 SELECT 查询"}
     
     return {"valid": True, "error": None}

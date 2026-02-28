@@ -13,6 +13,7 @@ from tools.email import EmailTool
 from tools.calculator import CalculatorTool
 from tools.get_time import TimeTool
 from tools.context_manager import ContextManagerTool
+from tools.database import DatabaseTool
 
 # 工具注册表
 TOOL_REGISTRY = {
@@ -20,7 +21,8 @@ TOOL_REGISTRY = {
     "send_email": EmailTool(),
     "calculate": CalculatorTool(),
     "get_current_time": TimeTool(),
-    "manage_context": ContextManagerTool(),  # 新增上下文管理工具
+    "manage_context": ContextManagerTool(),
+    "execute_sql": DatabaseTool(),
 }
 
 def get_all_tools():

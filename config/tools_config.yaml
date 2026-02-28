@@ -24,10 +24,3 @@ tools:
     description: "获取当前时间和日期。支持指定时区。当用户询问时间、日期、时区转换时使用。"
     rate_limit: 200
     timeout: 5
-
-settings:
-  max_conversation_history: 20
-  max_tool_call_retries: 3
-  default_model: "gpt-4-turbo"
-  enable_logging: true
-  log_level: "INFO"
